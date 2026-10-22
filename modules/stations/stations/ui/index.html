@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Find Chargers · EV Slot Booking</title>
+  <link rel="stylesheet" href="/base.css">
+  <link rel="stylesheet" href="/shared.css">
+  <link rel="stylesheet" href="./style.css">
+  <script src="/shared.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="stations-page">
+    <h1>Find Charging Stations</h1>
+    <p>Search active charging stations in your city, check charger availability for a specific hour, and proceed to booking.</p>
+
+    <!-- Search Card -->
+    <div class="card">
+      <h2>Search Stations</h2>
+      <form id="search">
+        <div class="grid-2">
+          <label>
+            City
+            <input name="city" placeholder="e.g. Mumbai, Pune, Bangalore">
+          </label>
+          <label>
+            Station name
+            <input name="name" placeholder="e.g. FastHub, Express">
+          </label>
+        </div>
+        <div class="flex-row" style="margin-top: 10px;">
+          <button type="submit" id="search-btn">Search Stations</button>
+          <button type="button" id="reset-btn" class="btn btn-secondary">Clear</button>
+        </div>
+      </form>
+      <div id="search-status" role="status" class="help-text" style="margin-top: 8px;"></div>
+    </div>
+
+    <!-- Hidden compatibility anchor for any legacy tests -->
+    <p role="status" id="message" class="sr-only"></p>
+
+    <!-- Two-column responsive layout: Search Results & Station Details -->
+    <div class="stations-layout">
+      <!-- Station list results -->
+      <section class="stations-list-section">
+        <h2>Charging Stations</h2>
+        <div id="results" class="stations-list">
+          <p class="text-muted">Enter a search filter or click Search to view stations.</p>
+        </div>
+      </section>
+
+      <!-- Selected Station Chargers & Availability -->
+      <section id="details-section" class="station-details-section" hidden>
+        <div id="details" class="card">
+          <!-- Station information and chargers injected here -->
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

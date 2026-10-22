@@ -1,0 +1,81 @@
+/* Stations Page Styles */
+.stations-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .stations-layout {
+    grid-template-columns: 1fr 1.2fr;
+  }
+}
+
+.stations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.station-item {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  transition: border-color 0.15s ease;
+}
+
+.station-item.selected {
+  border-color: var(--primary);
+  background-color: #f7faf9;
+}
+
+.station-item h3 {
+  margin: 0 0 6px 0;
+  color: var(--primary);
+}
+
+.station-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+/* Charger slot card inside details */
+.charger-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.charger-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.charger-info p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.availability-section {
+  margin: 16px 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.availability-section h3 {
+  margin-top: 0;
+  font-size: 14px;
+}
