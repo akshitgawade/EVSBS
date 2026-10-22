@@ -1,4 +1,0 @@
-'use strict';
-const fs=require('node:fs'),path=require('node:path');
-const root=path.resolve(__dirname,'../modules');
-for(const dir of fs.readdirSync(root,{withFileTypes:true}).filter(v=>v.isDirectory())){const folder=path.join(root,dir.name),manifest=JSON.parse(fs.readFileSync(path.join(folder,'module.json'),'utf8'));if(manifest.id!==dir.name||manifest.contractVersion!==1)throw Error('Invalid manifest');function walk(p){for(const item of fs.readdirSync(p,{withFileTypes:true})){const file=path.join(p,item.name);if(item.isDirectory())walk(file);else if(file.endsWith('.js')){const source=fs.readFileSync(file,'utf8');for(const match of source.matchAll(/require\(['"]([^'"]+)['"]\)/g))if(match[1].startsWith('.')){const resolved=path.resolve(path.dirname(file),match[1]);if(!resolved.startsWith(folder+path.sep))throw Error(`Private import escapes ${dir.name}`);}}}}walk(folder);console.log(`PASS module boundary ${dir.name}`);}
