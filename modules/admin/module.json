@@ -1,0 +1,1 @@
+{"id":"admin","version":"1.0.0","contractVersion":1,"dependsOn":["auth","stations","bookings"],"enabled":true,"entry":"index.js","nav":{"label":"Administration","path":"/modules/admin/"}}
