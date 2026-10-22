@@ -1,0 +1,12 @@
+/* Admin Interface Styles */
+.admin-page {
+  max-width: 920px;
+  margin: 20px auto;
+}
+
+.admin-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
