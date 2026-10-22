@@ -15,6 +15,14 @@ function createService({db,transaction,services,errors}){
    return{id:String(bookingId),slotId:String(slot._id),userId:String(userId),startTime,endTime,ratePerHourPaise:slot.hourlyRatePaise,status:'CONFIRMED',payment:{id:String(paymentId),amountPaise:payment.amountPaise,status:'PAID',transactionReference:reference}};
   });}catch(e){if(e.code===11000&&(e.message?.includes('uniq_confirmed_slot_start')||e.keyPattern?.slotId))errors.fail(409,'SLOT_UNAVAILABLE','This charger is already booked for that hour.');throw e;}
  }
+ async function cancel(userId,value){return transaction(async session=>{
+  const booking=await bookings.findOne({_id:id(value),userId:id(userId)},{session});if(!booking)errors.fail(404,'BOOKING_NOT_FOUND','Booking not found.');
+  const changed=await bookings.updateOne({_id:booking._id,userId:id(userId),status:'CONFIRMED',startTime:{$gt:new Date()}},{$set:{status:'CANCELLED',updatedAt:new Date()}},{session});
+  if(changed.matchedCount!==1)errors.fail(409,'CANNOT_CANCEL','Only confirmed bookings before their start can be cancelled.');
+  const refund=await payments.updateOne({bookingId:booking._id,status:'PAID'},{$set:{status:'REFUNDED',updatedAt:new Date()}},{session});
+  if(refund.matchedCount!==1)errors.fail(409,'PAYMENT_STATE_CONFLICT','Payment state prevents cancellation.');
+  return{id:String(booking._id),status:'CANCELLED',paymentStatus:'REFUNDED'};
+ });}
  function dateFilter(query={}){const filter={};for(const k of ['from','to'])if(query[k]!=null){const v=query[k];if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))errors.fail(400,'INVALID_DATE','Use YYYY-MM-DD report dates.');const d=new Date(v+'T00:00:00+05:30');if(!Number.isFinite(+d)||new Date(+d+19800000).toISOString().slice(0,10)!==v)errors.fail(400,'INVALID_DATE','Invalid date.');filter[k==='from'?'$gte':'$lt']=k==='to'?new Date(+d+86400000):d;}if(filter.$gte&&filter.$lt&&filter.$gte>=filter.$lt)errors.fail(400,'INVALID_DATE','From date must not follow to date.');return Object.keys(filter).length?{paidAt:filter}:{};}
  async function enrich(b){const{slot,station}=await services.get('stations.getSlotWithStation')(b.slotId),p=await payments.findOne({bookingId:b._id});return{id:String(b._id),userId:String(b.userId),station:{id:String(station._id),name:station.name},slot:{id:String(slot._id),slotNumber:slot.slotNumber,connectorType:slot.connectorType},startTime:b.startTime,endTime:b.endTime,status:b.status,amountPaise:p?.amountPaise??null,paymentStatus:p?.status??null};}
  async function history(userId){await complete();return Promise.all((await bookings.find({userId:id(userId)}).sort({startTime:-1,_id:-1}).toArray()).map(enrich));}
@@ -27,6 +35,6 @@ function createService({db,transaction,services,errors}){
   const stations=await services.get('stations.listStations')({all:true}),map=new Map(stations.map(s=>[String(s._id),{stationId:String(s._id),stationName:s.name,totalBookings:0,confirmedBookings:0,completedBookings:0,cancelledBookings:0,grossRevenuePaise:0,refundedPaise:0,netRevenuePaise:0}]));
   for(const row of rows){const slot=await services.get('stations.findSlot')(row._id.slotId),r=map.get(String(slot.stationId));if(!r)continue;r.totalBookings+=row.total;const key={CONFIRMED:'confirmedBookings',COMPLETED:'completedBookings',CANCELLED:'cancelledBookings'}[row._id.status];if(key)r[key]+=row.total;r.grossRevenuePaise+=row.gross;r.refundedPaise+=row.refunded;r.netRevenuePaise=r.grossRevenuePaise-r.refundedPaise;}return[...map.values()];
  }
- return{create,history,complete,isOccupied,listAll,listPayments,reportStationCohorts,dateFilter};
+ return{create,cancel,history,complete,isOccupied,listAll,listPayments,reportStationCohorts,dateFilter};
 }
 module.exports={createService};

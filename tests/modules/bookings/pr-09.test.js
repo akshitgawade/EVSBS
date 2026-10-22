@@ -1,0 +1,3 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');const{fixture,future}=require('../../fixtures/app'),{catalog}=require('../../fixtures/catalog');
+test("cancellation refund and rebooking",async()=>{const f=await fixture();try{const a=await f.customer(),{slot}=await f.station(),body={slotId:String(slot._id),start:future()};let r=await f.request('/api/bookings/',{method:'POST',cookie:a.cookie,body});assert.equal((await f.request('/api/bookings/'+r.body.data.id+'/cancel',{method:'POST',cookie:a.cookie,body:{}})).body.data.paymentStatus,'REFUNDED');assert.equal((await f.request('/api/bookings/',{method:'POST',cookie:a.cookie,body})).status,201);}finally{await f.close();}});
