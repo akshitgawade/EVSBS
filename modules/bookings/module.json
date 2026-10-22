@@ -1,0 +1,1 @@
+{"id":"bookings","version":"1.0.0","contractVersion":1,"dependsOn":["auth","stations"],"enabled":true,"entry":"index.js","nav":{"label":"My bookings","path":"/modules/bookings/"}}
