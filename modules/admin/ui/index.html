@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administration · EV Slot Booking</title>
+  <link rel="stylesheet" href="/base.css">
+  <link rel="stylesheet" href="/shared.css">
+  <link rel="stylesheet" href="./style.css">
+  <script src="/shared.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="admin-page">
+    <h1>Administration</h1>
+    <p>Manage charging stations, configure chargers and connectors, and view booking revenue reports.</p>
+
+    <!-- Error message for unauthenticated or non-admin users (BUG-05 fix) -->
+    <div id="auth-error" class="msg msg-error" hidden>
+      Administrator access required. <a href="/modules/auth/">Sign in with an administrator account</a>.
+    </div>
+
+    <!-- Hidden compatibility anchor -->
+    <p id="message" role="status" class="sr-only"></p>
+
+    <!-- Admin dashboard container (hidden until admin auth is verified) -->
+    <div id="controls" hidden>
+      <!-- SECTION 1: STATIONS -->
+      <section id="section-stations" class="admin-section">
+        <!-- Station Form -->
+        <div class="card">
+          <h2 id="station-form-title">Add New Station</h2>
+          <form id="station">
+            <input type="hidden" name="id" id="station-id">
+            <div class="grid-2">
+              <label>
+                Station Name
+                <input name="name" id="station-name" required placeholder="e.g. Metro EV Hub">
+              </label>
+              <label>
+                City
+                <input name="city" id="station-city" required placeholder="e.g. Mumbai">
+              </label>
+            </div>
+            <label>
+              Full Address
+              <input name="address" id="station-address" required placeholder="e.g. Plot 42, Sector 18, Vashi">
+            </label>
+            <div class="grid-2">
+              <label>
+                State
+                <input name="state" id="station-state" required placeholder="e.g. Maharashtra">
+              </label>
+              <label>
+                Postal Code
+                <input name="postalCode" id="station-postal" required placeholder="e.g. 400703">
+              </label>
+            </div>
+            <div class="grid-3">
+              <label>
+                Opening Time
+                <input name="openingTime" id="station-opening" value="06:00" required>
+              </label>
+              <label>
+                Closing Time
+                <input name="closingTime" id="station-closing" value="23:00" required>
+              </label>
+              <label>
+                Status
+                <select name="status" id="station-status">
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="MAINTENANCE">MAINTENANCE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="station-feedback" role="status"></div>
+
+            <div class="flex-row" style="margin-top: 12px;">
+              <button type="submit" id="save-station-btn">Save Station</button>
+              <button type="button" id="cancel-station-edit-btn" class="btn btn-secondary" hidden>Cancel Edit</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Existing Stations Table -->
+        <div class="card">
+          <h2>All Configured Stations</h2>
+          <div class="table-wrap">
+            <table id="stations-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>City</th>
+                  <th>Hours</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="stations-tbody">
+                <tr><td colspan="5" class="text-muted">Loading stations...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: CHARGERS -->
+      <section id="section-chargers" class="admin-section">
+        <!-- Charger Form -->
+        <div class="card">
+          <h2 id="slot-form-title">Add Charger to Station</h2>
+          <form id="slot">
+            <input type="hidden" name="id" id="slot-id">
+
+            <label>
+              Target Station
+              <select name="stationId" id="slot-station-id" required>
+                <option value="">-- Select a station --</option>
+              </select>
+            </label>
+
+            <div class="grid-2">
+              <label>
+                Charger Number
+                <input name="slotNumber" id="slot-number" type="number" min="1" required placeholder="1">
+              </label>
+              <label>
+                Connector Type
+                <select name="connectorType" id="slot-connector">
+                  <option value="CCS2">CCS2</option>
+                  <option value="CHAdeMO">CHAdeMO</option>
+                  <option value="TYPE2">TYPE2</option>
+                  <option value="GB_T">GB_T</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="grid-3">
+              <label>
+                Max Power (kW)
+                <input name="maxPowerKw" id="slot-power" type="number" min="0.01" step="0.01" required placeholder="50">
+              </label>
+              <label>
+                Hourly Price (₹ Rupees)
+                <input name="hourlyRateRupees" id="slot-price" type="number" min="0" step="0.01" required placeholder="250.00">
+                <input type="hidden" name="hourlyRatePaise" id="slot-paise">
+              </label>
+              <label>
+                Status
+                <select name="status" id="slot-status">
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="MAINTENANCE">MAINTENANCE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="slot-feedback" role="status"></div>
+
+            <div class="flex-row" style="margin-top: 12px;">
+              <button type="submit" id="save-slot-btn">Save Charger</button>
+              <button type="button" id="cancel-slot-edit-btn" class="btn btn-secondary" hidden>Cancel Edit</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Station Chargers Table -->
+        <div class="card">
+          <h2>Chargers for Selected Station</h2>
+          <div class="table-wrap">
+            <table id="slots-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Connector</th>
+                  <th>Power</th>
+                  <th>Hourly Rate</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="slots-tbody">
+                <tr><td colspan="6" class="text-muted">Select a station above to view its chargers.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: REPORTS & RECORDS -->
+      <section id="section-reports" class="admin-section">
+        <div class="card">
+          <h2>Browse Records & Revenue Reports</h2>
+          <form id="view">
+            <div class="grid-3">
+              <label>
+                Report View
+                <select name="route" id="report-route">
+                  <option value="reports/stations">Station Revenue Report</option>
+                  <option value="bookings">All Bookings</option>
+                  <option value="payments">All Payments</option>
+                  <option value="stations">All Stations</option>
+                </select>
+              </label>
+              <label>
+                From Date
+                <input type="date" name="from" id="report-from">
+              </label>
+              <label>
+                To Date
+                <input type="date" name="to" id="report-to">
+              </label>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <button type="submit" id="load-report-btn">Generate Report</button>
+            </div>
+          </form>
+
+          <p class="help-text" style="margin-top: 10px;">
+            Dates use payment date in Asia/Kolkata (IST). Gross revenue includes refunded bookings; Net revenue = Gross − Refunds.
+          </p>
+        </div>
+
+        <div class="card">
+          <div id="report-status" role="status" class="help-text"></div>
+          <div id="output" class="table-wrap">
+            <p class="text-muted">Choose a report and click Generate Report above.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
