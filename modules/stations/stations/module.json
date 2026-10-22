@@ -1,0 +1,1 @@
+{"id":"stations","version":"1.0.0","contractVersion":1,"dependsOn":["auth"],"enabled":true,"entry":"index.js","nav":{"label":"Find chargers","path":"/modules/stations/"}}
