@@ -9,3 +9,5 @@ artifacts/
 snapshots/
 .test-work/
 LOCAL_DELIVERY_RESULTS.json
+deliverables/
+*.zip
