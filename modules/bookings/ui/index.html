@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Bookings · EV Slot Booking</title>
+  <link rel="stylesheet" href="/base.css">
+  <link rel="stylesheet" href="/shared.css">
+  <link rel="stylesheet" href="./style.css">
+  <script src="/shared.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="bookings-page">
+    <h1>My Charging Bookings</h1>
+    <p>Reserve an available charging slot or view and manage your reservation history.</p>
+
+    <!-- New Booking Section -->
+    <section class="card" id="booking-section">
+      <h2>Reserve Charging Slot</h2>
+      <p class="help-text">Slots last for exactly 60 minutes. Mock payment is processed instantly with simulated confirmation.</p>
+
+      <!-- Charger selection summary (Human friendly, no raw IDs shown) -->
+      <div id="selection-summary" class="msg msg-info">
+        Checking charger selection...
+      </div>
+
+      <form id="book">
+        <!-- Raw MongoDB ID is stored securely in hidden input, not typed by user -->
+        <input type="hidden" name="slotId" id="slotId">
+
+        <label>
+          Slot Start Time (IST)
+          <input name="start" id="start-time" type="datetime-local" step="3600" required>
+          <span class="help-text">Whole hour increments in station local time (Asia/Kolkata).</span>
+        </label>
+
+        <div id="booking-message" role="status"></div>
+
+        <div style="margin-top: 14px;">
+          <button type="submit" id="book-btn">Confirm Reservation & Mock Pay</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Hidden compatibility anchor -->
+    <p id="message" role="status" class="sr-only"></p>
+
+    <!-- History Section -->
+    <section class="card" style="margin-top: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+        <h2 style="margin: 0;">Reservation History</h2>
+        <button id="refresh" type="button" class="btn btn-secondary btn-sm">Refresh History</button>
+      </div>
+
+      <div id="history-status" role="status"></div>
+      <div id="history" class="history-list">
+        <p class="text-muted">Loading your bookings...</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
