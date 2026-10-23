@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account · EV Slot Booking</title>
+  <link rel="stylesheet" href="/base.css">
+  <link rel="stylesheet" href="/shared.css">
+  <link rel="stylesheet" href="./style.css">
+  <script src="/shared.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="auth-page">
+    <h1>Your Account</h1>
+    <p>Sign in to reserve charging slots or create a new customer account.</p>
+
+    <!-- Fallback general message -->
+    <div id="message" role="status" class="sr-only"></div>
+
+    <!-- Active session indicator if already logged in -->
+    <div id="session-box" class="card" hidden>
+      <p>You are signed in as <strong id="session-user"></strong>.</p>
+      <div class="flex-row">
+        <a href="/modules/stations/" class="btn">Find Chargers</a>
+        <button id="logout" type="button" class="btn btn-secondary">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- Auth tabs -->
+    <div class="auth-tabs">
+      <button type="button" id="tab-login" class="tab-btn active">Sign In</button>
+      <button type="button" id="tab-register" class="tab-btn">Create Account</button>
+    </div>
+
+    <!-- Login Panel -->
+    <div id="panel-login" class="card auth-card">
+      <h2>Sign In</h2>
+      <form id="login">
+        <label>
+          Email address
+          <input name="email" type="email" required autocomplete="username" placeholder="name@example.com">
+        </label>
+        <label>
+          Password
+          <input name="password" type="password" required autocomplete="current-password" placeholder="••••••••••">
+        </label>
+        <div id="login-message" role="status"></div>
+        <button type="submit" id="login-btn" style="margin-top: 10px;">Sign In</button>
+      </form>
+    </div>
+
+    <!-- Register Panel -->
+    <div id="panel-register" class="card auth-card" hidden>
+      <h2>Create New Account</h2>
+      <form id="register">
+        <div class="grid-2">
+          <label>
+            First name
+            <input name="firstName" required maxlength="50" autocomplete="given-name">
+          </label>
+          <label>
+            Last name
+            <input name="lastName" required maxlength="50" autocomplete="family-name">
+          </label>
+        </div>
+        <label>
+          Email address
+          <input name="email" type="email" required autocomplete="email" placeholder="name@example.com">
+        </label>
+        <label>
+          Phone number
+          <input name="phone" type="tel" required autocomplete="tel" placeholder="9876543210">
+        </label>
+        <label>
+          Password
+          <span class="help-text">Minimum 10 characters</span>
+          <input name="password" type="password" minlength="10" maxlength="128" required autocomplete="new-password">
+        </label>
+        <div id="register-message" role="status"></div>
+        <button type="submit" id="register-btn" style="margin-top: 10px;">Create Account</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
