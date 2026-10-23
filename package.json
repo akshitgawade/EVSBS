@@ -1,0 +1,16 @@
+{
+  "name": "evsbs", "version": "1.0.0", "private": true,
+  "description": "Modular EV charging slot booking",
+  "engines": {"node": ">=22.23.0"},
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/core/server.js",
+    "test": "node scripts/test.js",
+    "test:core": "node --test tests/core/*.test.js",
+    "test:module": "node scripts/test-module.js",
+    "test:integration": "node --env-file-if-exists=.env --test tests/integration/*.test.js",
+    "test:smoke": "node --env-file-if-exists=.env scripts/smoke.js",
+    "db:seed": "node --env-file-if-exists=.env scripts/seed.js",
+    "verify:modules": "node scripts/verify-modules.js"
+  },
+  "dependencies": {"express": "5.3.0", "mongodb": "7.7.0"}
+}
