@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+coverage/
+*.log
+artifacts/
+.npm-cache/
+snapshots/
+.test-work/
+LOCAL_DELIVERY_RESULTS.json
+deliverables/
+*.zip
