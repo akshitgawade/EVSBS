@@ -1,60 +1,130 @@
 # EVSBS — EV Charging Slot Booking System
 
-Node.js (tested with 22.23.2), Express 5.3.0, MongoDB driver 7.7.0, HTML/CSS and vanilla JavaScript. No frontend build step. Payment is a mock transaction, not a real charge.
+EVSBS is a modular web application for discovering electric-vehicle charging stations, checking charger availability, booking one-hour charging slots, and managing bookings and simulated payments. It uses a Node.js/Express backend, MongoDB, and a plain HTML, CSS, and JavaScript frontend. There is no frontend build step.
 
-## Overview
+Payments are simulated for this project; the application does not charge a real card.
 
-EVSBS provides authenticated EV station discovery, charger availability, one-hour reservations, simulated payments, cancellation and refunds, and administrator reporting. The application uses a modular Node.js server with a plain HTML, CSS, and vanilla JavaScript frontend.
+## Features
 
-## Stack and architecture
+- Four independently discovered modules: authentication, stations, bookings, and administration.
+- Customer registration and sign-in, station and charger discovery, availability checks, booking, cancellation, and simulated payment/refund records.
+- Admin tools for managing station data and reviewing bookings, payments, and reports.
+- MongoDB indexes and transaction-based protection for booking/payment operations.
+- Responsive browser UI served by the application.
 
-The server uses Node.js, Express, and the official MongoDB driver. The core discovers independent modules from `modules/<name>/module.json`, resolves dependencies, exposes shared authentication services, and keeps the application bootable when optional modules are absent. The four modules are `auth`, `stations`, `bookings`, and `admin`. Module-specific API, domain, UI, and tests stay together. No frontend build step is required.
+## Requirements
 
-## Installation and configuration
+- Node.js **22.23.0 or newer** (npm is included with Node.js).
+- A MongoDB Atlas deployment with transaction support (replica set or sharded cluster).
+- Git.
 
-1. Install Node.js 22.23 or newer.
-2. Run `npm ci`.
-3. Copy `.env.example` to `.env` locally. Set a private MongoDB Atlas URI in `MONGO_URI`, a database name, a random `SESSION_SECRET` of at least 32 characters, and the exact browser `APP_ORIGIN`.
-4. Set private seed admin and customer email/password values, each password 10–128 characters.
+## Run locally
 
-The `.env` file is local-only and is excluded from Git. `.env.example` contains variable names and safe empty placeholders.
+### 1. Clone and install
 
-## MongoDB Atlas and seed
+Clone the `main` branch:
 
-Use an Atlas deployment with replica-set or sharded transaction support and an allowlisted client address. Bootstrap creates schema validators and indexes; an incompatible existing validator or duplicate unique-index data stops startup for review. It does not drop collections, reset data, replace passwords, or delete bookings. Seed is idempotent and preserves existing accounts and bookings.
+```sh
+git clone https://github.com/akshitgawade/EVSBS.git
+cd EVSBS
+npm ci
+```
+
+### 2. Configure environment variables
+
+Create a local `.env` file by copying the example.
+
+PowerShell:
 
 ```powershell
+Copy-Item .env.example .env
+```
+
+macOS/Linux:
+
+```sh
+cp .env.example .env
+```
+
+Edit `.env` and set the values below. Keep this file private; it is gitignored and must never be committed or shared publicly.
+
+| Variable | Purpose |
+| --- | --- |
+| `MONGO_URI` | Private MongoDB Atlas connection URI for the demo/application database. |
+| `MONGO_DB` | Application database name; the example uses `evsbs_demo`. |
+| `SESSION_SECRET` | Long, random secret used to sign sessions (at least 32 characters). |
+| `PORT` | Optional HTTP port; defaults to `3000`. |
+| `APP_ORIGIN` | Exact browser origin, normally `http://localhost:3000` for local use. |
+| `COOKIE_SECURE` | Use `false` for local HTTP; use `true` when serving over HTTPS. |
+| `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | Private credentials for the seeded demo administrator. |
+| `SEED_CUSTOMER_EMAIL`, `SEED_CUSTOMER_PASSWORD` | Private credentials for the seeded demo customer. |
+| `MONGO_TEST_URI`, `MONGO_TEST_DB` | Optional, separate Atlas connection and test database used only by integration tests. |
+
+Use strong, private passwords for seeded accounts. Do not put real credentials in source files, issues, pull requests, screenshots, or chat. For access to the shared demo MongoDB URI or account setup details, contact **akshitpgawade@gmail.com** privately. Do not send passwords over public channels.
+
+### 3. Seed and start
+
+With Atlas configured and reachable, initialize indexes and seed the demo accounts:
+
+```sh
 npm run db:seed
 ```
 
-## Start and use
+The seed is designed to be idempotent: it creates missing demo accounts and preserves existing accounts and bookings. It does not drop collections or reset the database. Startup also ensures the required indexes.
 
-```powershell
+Start the application:
+
+```sh
 npm start
 ```
 
-Open the configured origin. Public registration creates customers. Seeded administrators can manage stations and chargers, inspect bookings and payments, and view station reports.
+Then open [http://localhost:3000](http://localhost:3000) (or the configured `PORT`). The app serves the frontend and API from the same origin. Use the private demo account credentials configured in `.env`; public customer registration is also available.
 
-## Features and conventions
+Useful endpoints:
 
-Four discovered modules: auth, stations, bookings, admin. Copy a complete module folder into `modules/` and restart. Missing dependencies disable consumers; missing bookings makes availability return 503. `/api/modules` explains module states. `/api/health` returns success only when the database responds. The core can run with zero installed modules.
+- `GET /api/health` — application/database health.
+- `GET /api/modules` — discovered modules and their status.
 
-Booking starts use Asia/Kolkata local wall time, on the hour in the future. Each booking is exactly 60 minutes within one day's station hours. Money is integer INR paise. Transactions couple booking/payment and cancellation/refund. A confirmed-slot unique index resolves competing bookings. Booking validation writes station/slot guards so concurrent admin edits conflict and retry before commit. This design still requires the real Atlas race test before claiming verified concurrency.
+If you change `PORT`, update `APP_ORIGIN` to match the origin you use in the browser.
 
-Reports use payment paidAt dates in Asia/Kolkata, including all original amounts in gross and refunded amounts in refunds. Counts use the same payment-linked booking cohort. Net = gross minus refunds. Ended confirmed bookings become completed on history/admin reads.
+## Tests and checks
 
-Sessions are signed opaque HttpOnly cookies with server-side expiry; protected requests reload account status. Write requests require JSON and an exact matching Origin. Browser clients send this automatically. API clients must explicitly send the configured Origin header. HTTPS enables Secure cookies. Local HTTP requires COOKIE_SECURE=false. Login rate limiting is process-local; this student project uses one server process.
+```sh
+npm test
+npm run test:module -- auth
+npm run test:module -- stations
+npm run test:module -- bookings
+npm run test:module -- admin
+npm run verify:modules
+```
 
-## Testing
+The default test suite uses isolated fixtures/mocks and does not require Atlas. It does not prove live MongoDB transaction or concurrency behavior.
 
-- `npm test`: offline fake-database HTTP/unit tests; does not prove MongoDB concurrency.
-- `npm run test:module -- auth` (or stations/bookings/admin): focused module tests.
-- `npm run verify:modules`: private import boundaries.
-- `npm run test:integration`: requires private MONGO_TEST_URI and MONGO_TEST_DB starting with `evsbs_test_`, distinct from demo. Each run creates a uniquely suffixed isolated database and tagged fixtures; no cleanup or drop is performed automatically. Missing configuration is explicitly SKIPPED / NOT-RUN.
-- `npm run test:smoke`: core routes on a running configured server.
+To run the Atlas integration tests, configure `MONGO_TEST_URI` and `MONGO_TEST_DB` in `.env`. Use a dedicated test database whose name begins with `evsbs_test_`, and never point it at the demo database:
 
-The offline suite does not prove MongoDB concurrency. Atlas integration requires private `MONGO_TEST_URI` and a distinct `MONGO_TEST_DB` beginning with `evsbs_test_`; tests use a unique suffix and never drop the shared demo database.
+```sh
+npm run test:integration
+```
 
-## Branch workflow
+Integration tests create uniquely named isolated test databases and do not automatically drop databases. Review the test output; missing Atlas configuration means the integration tests were skipped, not passed.
 
-The permanent branches are `main`, `merge`, `branch_agamoze`, `branch_freezingswan`, `branch_akshitgawade`, and `branch_advai1`. `main` is intentionally empty. `merge` is the integration branch. Each feature branch contains the common skeleton and its assigned module contribution. Teammate contributions enter their designated branches through Stage A pull requests, then enter `merge` through Stage B pull requests. The owner reviews and merges both stages. See `docs/GIT_WORKFLOW.md` for the contribution sequence.
+## Troubleshooting
+
+- **Database connection fails:** check that the Atlas cluster is running, the client IP is allowed, the database user has appropriate access, and `MONGO_URI` is correct.
+- **Transactions are unavailable:** use an Atlas replica-set or sharded deployment; standalone MongoDB does not support the transaction behavior required by bookings.
+- **Session or browser-origin errors:** ensure `APP_ORIGIN` exactly matches the origin in the address bar, including scheme and port.
+- **Port is in use:** set a different `PORT` and update `APP_ORIGIN` accordingly.
+- **A module is inactive:** inspect `GET /api/modules` for its status and dependency details.
+
+## Project layout
+
+```text
+docs/       Architecture, API, database, testing, and workflow documentation
+modules/    auth, stations, bookings, and admin feature modules
+scripts/    Seeding, smoke tests, module checks, and test runners
+src/core/   Server, configuration, database, errors, and module loader
+src/web/    Shared HTML, CSS, and browser shell
+tests/      Core, module, fixture, and Atlas integration tests
+```
+
+For contribution and branch procedures, see [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md).
